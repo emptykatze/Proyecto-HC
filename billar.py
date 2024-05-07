@@ -55,7 +55,7 @@ plt.plot(l4_x, l4_y, 'b')
 x=np.zeros(2000)
 y=np.zeros(2000)
 t=np.zeros(2000)
-h=1
+h=2
 
 x[0]=-3
 y[0]=0
