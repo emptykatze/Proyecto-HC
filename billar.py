@@ -3,7 +3,7 @@ import numpy as np
 from matplotlib.animation import FuncAnimation
 import matplotlib.animation as animation
 
-!apt install ffmpeg
+#!apt install ffmpeg
 # initializing a figure in
 # which the graph will be plotted
 fig = plt.figure()
