@@ -27,6 +27,8 @@ class particula:
     def setvx(self, nvx):
         self.v[0] = nvx
     
+    def getx(self):
+        return self.x
     def setvy(self, nvy):
         self.v[1] = nvy
     
@@ -34,6 +36,8 @@ class particula:
         self.px.append(self.r[0])
         self.py.append(self.r[1])
         self.r = self.r + self.v * dt
+    #def choque(self,nvx,nvy):
+
 
 
 
@@ -47,22 +51,30 @@ dt=tiempo_total/num_puntos
 time = np.linspace(0, tiempo_total,num_puntos)
 
 #movimiento
-limx=10
-limy=10
+limx=1
+limy=1
 #Particulas:
-N=500
+N=100
 
 particulas=[]
 #Lista de particulas:
+r=.2
 for i in range(N):
-    particulas.append(particula(random.randint(-limx,limx),random.randint(-limy,limy),random.randint(-limx,limx),random.randint(-limy,limy)))
-
+    particulas.append(particula(random.uniform(-limx+r,limx-r),random.uniform(-limy+r,limy-r),random.uniform(-limx,limx),random.uniform(-limy,limy)))
+#particulas=[particula(0,0,0,0)]
 for t in time:
     for i in particulas:
         if np.abs(i.r[0]) > limx:
             i.setvx(-i.v[0])
         if np.abs(i.r[1]) > limy:
             i.setvy(-i.v[1])
+        for j in particulas:
+            if i!=j:
+                r_ij=np.sqrt((i.x-j.x)*(i.x-j.x)+(i.y-j.y)*(i.y-j.y))
+                if r_ij<0.01:
+                    i.setvx(-i.v[1])
+                    i.setvy(i.v[0])   
+                    True
         i.mov(dt)
     
 
@@ -94,8 +106,13 @@ fig = px.scatter(
     animation_frame='time', 
     range_x=[-limx,limx], 
     range_y=[-limy,limy], 
-    color_discrete_sequence=['red'],
+    color_discrete_sequence=['purple'],
 )
+points_whole_ax = .5 * 0.8 * 72    # 1 point = dpi / 72 pixels
+radius = 0.5
+points_radius = 2 * radius / 2.0 * points_whole_ax
+#fig.update_traces(marker=dict(size=1))
+
 
 #Hacer que los ejes de la figura no se deformen
 fig.update_layout(
