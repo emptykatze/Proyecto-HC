@@ -1,11 +1,15 @@
 import plotly.graph_objects as go
 import plotly.express as px
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 import numpy as np
 import pandas as pd
 import random
+from matplotlib.patches import Ellipse
+from matplotlib.collections import PatchCollection
 #Definir clase particula
 class particula:
-    def __init__(self, x, y, vx, vy, radio=5,m=1):
+    def __init__(self, x, y, vx, vy, radio=100,m=1):
         self.x = x
         self.y = y
         self.vx = vx
@@ -54,79 +58,91 @@ time = np.linspace(0, tiempo_total,num_puntos)
 limx=1
 limy=1
 #Particulas:
-N=100
+N=10
 
 particulas=[]
 #Lista de particulas:
-r=.2
+r=.05
 for i in range(N):
-    particulas.append(particula(random.uniform(-limx+r,limx-r),random.uniform(-limy+r,limy-r),random.uniform(-limx,limx),random.uniform(-limy,limy)))
-#particulas=[particula(0,0,0,0)]
+    particulas.append(particula(random.uniform(-limx+r,limx-r),random.uniform(-limy+r,limy-r),random.uniform(-limx,limx),random.uniform(-limy,limy),r))
+#particulas=[particula(0,0,0,0,r)]
 for t in time:
     for i in particulas:
-        if np.abs(i.r[0]) > limx:
+        if i.r[0]-i.radio <= -limx or i.r[0]+i.radio >= limx:
             i.setvx(-i.v[0])
-        if np.abs(i.r[1]) > limy:
+        if i.r[1]-i.radio <= -limy or i.r[1]+i.radio >= limy:
             i.setvy(-i.v[1])
         for j in particulas:
             if i!=j:
                 r_ij=np.sqrt((i.x-j.x)*(i.x-j.x)+(i.y-j.y)*(i.y-j.y))
-                if r_ij<0.01:
-                    i.setvx(-i.v[1])
-                    i.setvy(i.v[0])   
-                    True
         i.mov(dt)
     
 
 # Calcular las coordenadas x e y de la partícula en función del tiempo
 #Lista de posiciones
-x,y,T=[],[],[]
+x,y,T,radios=[],[],[],[]
 
 for i in particulas:
     x.append(np.array(i.px))
     y.append(np.array(i.py))
     T.append(time)
+    #Se crea una lista de radios para cada particula del tamaño del vector posiciones
+    radios.append([i.radio] * len(i.px))
+
 
 #Concatenar las listas
 X=np.concatenate(x)
 Y=np.concatenate(y)
 TI=np.concatenate(T)
-# Crear el dataframe con las coordenadas x e y
+R=np.concatenate(radios)
 
-df = pd.DataFrame({'time': TI, 'X': X, 'Y': Y})
+# Crear el DataFrame con las coordenadas x, y y radios
+df = pd.DataFrame({'time': TI, 'X': X, 'Y': Y, 'radios': R})
 
+# Crear una figura y ejes
+fig, ax = plt.subplots()
 
-#df = px.data.gapminder()
+# Definir los límites de los ejes
+ax.set_xlim(-limx, limx)
+ax.set_ylim(-limy, limy)
 
+# Crear una colección de elipses vacía
+patches = []
+collection = PatchCollection(patches, facecolor='purple', alpha=0.6)
+ax.add_collection(collection)
+ax.grid(True)
 
-fig = px.scatter(
-    data_frame=df,
-    x='X',
-    y='Y', 
-    animation_frame='time', 
-    range_x=[-limx,limx], 
-    range_y=[-limy,limy], 
-    color_discrete_sequence=['purple'],
+# Función de inicialización para la animación
+def init():
+    collection.set_paths([])
+    return collection,
+
+# Función de actualización para la animación
+def update(frame):
+    # Filtrar datos para el frame actual
+    data = df[df['time'] == frame]
+    x_data = data['X'].values
+    y_data = data['Y'].values
+    sizes = data['radios'].values   # Ajustar el factor de escala del tamaño si es necesario
+
+    # Crear nuevas elipses para el frame actual
+    patches = []
+    for (x, y, r) in zip(x_data, y_data, sizes):
+        ellipse = Ellipse(xy=(x, y), width=2*r, height=2*r, angle=0, edgecolor='none', facecolor='purple')
+        patches.append(ellipse)
+    
+    collection.set_paths(patches)
+    return collection,
+
+# Crear la animación
+ani = animation.FuncAnimation(
+    fig, update, frames=np.unique(df['time']),
+    init_func=init, repeat=False,
+    interval=15
 )
-points_whole_ax = .5 * 0.8 * 72    # 1 point = dpi / 72 pixels
-radius = 0.5
-points_radius = 2 * radius / 2.0 * points_whole_ax
-#fig.update_traces(marker=dict(size=1))
 
+# Ajustar el tamaño del gráfico al tamaño del área de dibujo
+fig.tight_layout()
 
-#Hacer que los ejes de la figura no se deformen
-fig.update_layout(
-    xaxis=dict(scaleanchor="y", scaleratio=1),
-    yaxis=dict(scaleanchor="x", scaleratio=1)
-)
-#vel
-# Ajustar la velocidad de la animación
-fig.layout.updatemenus[0].buttons[0].args[1]['frame']['duration'] = 5  # Duración en milisegundos por frame
-#limites caja
-fig.add_vline(x=limx, line_color="red")
-fig.add_vline(x=-limx, line_color="red")
-fig.add_hline(y=limy, line_color="red")
-fig.add_hline(y=-limy, line_color="red")
-
-
-fig.show()
+# Mostrar la animación
+plt.show()
