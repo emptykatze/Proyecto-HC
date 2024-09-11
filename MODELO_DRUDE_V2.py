@@ -8,6 +8,14 @@ import random
 from matplotlib.patches import Ellipse
 from matplotlib.collections import PatchCollection
 from scipy import constants
+"""
+Las medidas que utilizamos son:
+distancia: picometros- 235pm de radio (creo) de electrones.
+para la carga y la masa del electrón los normalizamos siendo 1 culomb y 1kg.
+debido a lo anterior debemos convertir las medidas del campo magnético y la constante de Boltzmann:
+V/m=5.6797X10^48pm/s^2.
+La constante de Boltzmann es k=1.25639059X10^33pm/(ks^2)
+"""
 #Definir clase particula
 class particula:
     def __init__(self, x, y, vx, vy, radio=100,m=1,carga=-constants.elementary_charge,movimiento=True,color="purple"):
