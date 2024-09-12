@@ -8,6 +8,7 @@ import random
 from matplotlib.patches import Ellipse
 from matplotlib.collections import PatchCollection
 from scipy import constants
+from scipy.stats import maxwell
 """
 Las medidas que utilizamos son:
 distancia: picometros- 235pm de radio (creo) de electrones.
@@ -45,7 +46,7 @@ class particula:
         # Velocidad relativa entre particulas:
         vrel=particula2.v-self.v
         if self!=particula2 and D2 <= suma_radios*suma_radios and np.dot(vrel,d)<0 and (particula2.movimiento==False or self.movimiento==False):
-            self.v=-self.v 
+            self.v=maxwell.rvs(np.sqrt(k_b * T / m_e))
             particula2.v=-particula2.v  
             # Si hay un choque se va a guardar el tiempo en el que ocurre menos el tiempo anterior
             
@@ -62,7 +63,7 @@ class particula:
 
 
 # Definimos un campo electrico en dirección x:
-E=np.array([1*10**(-10),0.])
+E=np.array([1*10**(-7),0.])
 
 
 
@@ -70,29 +71,33 @@ E=np.array([1*10**(-10),0.])
 # CREACIÓN DEL DATA FRAME
 # Definir los parámetros del movimiento
 dt=0.005
-tiempo_total = 2  # Tiempo total del movimiento (segundos)
+tiempo_total =1  # Tiempo total del movimiento (segundos)
 num_puntos = int(tiempo_total/dt)  # Número de puntos en el dataframe  1000
 #dt=tiempo_total/num_puntos
 time = np.linspace(0, tiempo_total,num_puntos)
+#Distacia de la red en pm
+d=409
 
-# LIMITES DE LA CAJA
-limx=20
-limy=20
 # NUMERO DE IONES MXM
-M=8
+M=6
 M2=M**2
 # NUMERO DE ELECTRONES
 N=M2
+
 #Lista de particulas:
 particulas=[]
 #Definir radio de electrones, protones y distancia entre protones en la red:
-r_e, m_e=.4, constants.m_e
-r_p, m_p=1.2, constants.m_p
-
+r_e, m_e=d/16, constants.m_e
+r_p, m_p=d/4, constants.m_p
+k_b=1
+T=273.15+20
+# LIMITES DE LA CAJA
+limx=((M)*d+2.1*r_p)/2
+limy=((M)*d+2.1*r_p)/2
 # Definir cuadricula de iones, o atomos y agregarlos a la lista de particula
 for i in range(M):
     for j in range(M):
-        particulas.append(particula((-limx+r_p*1.1)+i*5,(-limy+r_p*1.1)+j*5,0,0,r_p,m_p,color="red",movimiento=False))
+        particulas.append(particula((-limx+r_p*1.1)+i*d+d/2,(-limy+r_p*1.1)+j*d+d/2,0,0,r_p,m_p,color="red",movimiento=False))
 # Definir electrones y agregarlos a la lista particulas, se tiene que tener en cuenta que no se pueden solapar entre ellos ni con los radios de los protones
 # Entonces si se genera alguno que se solape con los demas, se genera otra posicion 
 for i in range(N):
@@ -110,7 +115,7 @@ for i in range(N):
                     if ((gx-p.r[0])**2+(gy-p.r[1])**2)**0.5 < (r_e + p.radio):
                         solapado = True
                         break
-    gvx, gvy=random.uniform(-limx,limx),random.uniform(-limy,limy)*20
+    gvx, gvy=maxwell.rvs(np.sqrt(k_b * T / m_e)),maxwell.rvs(np.sqrt(k_b * T / m_e))
     #gvx, gvy=0,0
     particulas.append(particula(gx,gy,gvx,gvy,r_e,m_e,color="purple"))
 
@@ -137,17 +142,18 @@ for t in time:
         #    i.r[1] = limy - i.radio  # Reposicionar justo en el borde
         #    i.v[1] = -i.v[1]  # Invertir velocidad
 
-        # Frontera periódica en x
-        if i.r[0] - i.radio < -limx:
-            i.r[0] = limx - i.radio  # Reaparece en el lado derecho
-            contador += 1
-        elif i.r[0] + i.radio > limx:
-            i.r[0] = -limx + i.radio  # Reaparece en el lado izquierdo
-        # Frontera periódica en y
-        if i.r[1] - i.radio < -limy:
-            i.r[1] = limx - i.radio  # Reaparece en el lado derecho
-        elif i.r[1] + i.radio > limy:
-            i.r[1] = -limy + i.radio  # Reaparece en el lado izquierdo
+        if i.movimiento:
+            # Frontera periódica en x
+            if i.r[0] - i.radio < -limx:
+                i.r[0] = limx - i.radio  # Reaparece en el lado derecho
+                contador += 1
+            elif i.r[0] + i.radio > limx:
+                i.r[0] = -limx + i.radio  # Reaparece en el lado izquierdo
+            # Frontera periódica en y
+            if i.r[1] - i.radio < -limy:
+                i.r[1] = limx - i.radio  # Reaparece en el lado derecho
+            elif i.r[1] + i.radio > limy:
+                i.r[1] = -limy + i.radio  # Reaparece en el lado izquierdo
 
         
         
