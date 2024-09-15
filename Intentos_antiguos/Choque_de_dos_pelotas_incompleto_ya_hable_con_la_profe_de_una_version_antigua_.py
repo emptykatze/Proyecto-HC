@@ -3,7 +3,7 @@ import numpy as np
 from matplotlib.animation import FuncAnimation
 import matplotlib.animation as animation
 import scipy as sci
-!apt install ffmpeg
+#!apt install ffmpeg
 
 dt=0.01 #si es 0.01 la velocidad de las pelotas serán mucho más lentas
 Nsteps=200

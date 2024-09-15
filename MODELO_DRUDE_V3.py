@@ -10,13 +10,16 @@ from matplotlib.collections import PatchCollection
 from scipy import constants
 from scipy.stats import maxwell
 """
-Las medidas que utilizamos son:
-distancia: picometros- 235pm de radio (creo) de electrones.
-para la carga y la masa del electrón los normalizamos siendo 1 culomb y 1kg.
-debido a lo anterior debemos convertir las medidas del campo magnético y la constante de Boltzmann:
-V/m=5.6797X10^48pm/s^2.
-La constante de Boltzmann es k=1.25639059X10^33pm^2/(ks^2)
+Se utilizaron unidades de picometros para la distancia, para que la distancia entre iones de la red no
+tuvierta un numero muy grande, por lo que se utilizó 1 m = 1e12 pm
 """
+def random_vel(t=0):
+        k_b=constants.Boltzmann*10**24 #Constante de boltzmann en (Kg pm^2/s^2)/K
+        T=273.15+20
+        m_e=constants.electron_mass
+        distribucion=np.sqrt(k_b * T / m_e)
+        if t==0: return np.random.normal(0, distribucion)
+        if t!=0: return distribucion
 #Definir clase particula
 class particula:
     def __init__(self, x, y, vx, vy, radio=100,m=1,carga=-constants.elementary_charge,movimiento=True,color="purple"):
@@ -26,6 +29,9 @@ class particula:
         self.m = m
         self.px = []
         self.py = []
+        self.vx = []
+        self.vy = []
+        self.v2 = []
         self.q=carga
         self.color=color
         self.movimiento=movimiento
@@ -34,6 +40,9 @@ class particula:
     def mov(self, dt):
         self.px.append(self.r[0])
         self.py.append(self.r[1])
+        self.vx.append(self.v[0])
+        self.vy.append(self.v[1])
+        self.v2.append(self.v[0]*self.v[0]+self.v[1]*self.v[1])
         if self.movimiento==True:
             self.r=self.r+self.v*dt
         
@@ -46,33 +55,59 @@ class particula:
         # Velocidad relativa entre particulas:
         vrel=particula2.v-self.v
         if self!=particula2 and D2 <= suma_radios*suma_radios and np.dot(vrel,d)<0 and (particula2.movimiento==False or self.movimiento==False):
-            self.v=maxwell.rvs(np.sqrt(k_b * T / m_e))
-            particula2.v=-particula2.v  
+            
+            normal = d / np.linalg.norm(d)
+            overlap = suma_radios - np.sqrt(D2)
+            correction = normal * overlap / 2
+
+            if particula2.movimiento==False: 
+                self.v[0]=random_vel()
+                self.v[1]=random_vel()
+                self.r -= correction
+                self.v=-self.v
+            else: 
+                particula2.v[0]=random_vel()
+                particula2.v[1]=random_vel()
+                particula2.r += correction
+                particula2.v=-particula2.v  
+            
+            particula2.tau.append(t-particula2.tau[-1])
+            self.tau.append(t-self.tau[-1])
+
+            
+            
+            
+            
+            
             # Si hay un choque se va a guardar el tiempo en el que ocurre menos el tiempo anterior
             
-            self.tau.append(t-self.tau[-1])
-            particula2.tau.append(t-particula2.tau[-1])
+            
+            
 
     def campo_electrico(self,E,dt):
         a=self.q*E/self.m
         self.v=a*dt+self.v
         
-        
+    
+                
         
 
 
 
 # Definimos un campo electrico en dirección x:
-E=np.array([1*10**(-7),0.])
+E=np.array([10**4,0.])*10**-12
+E=np.array([10**8,0.])*10**-12*0
 
 
 
+#TIEMPO REAL DE SIMULACION
+dt=1*10**(-18)
+tiempo_total =5*10**(-15)  # Tiempo total del movimiento (segundos)
 
-# CREACIÓN DEL DATA FRAME
-# Definir los parámetros del movimiento
-dt=0.005
-tiempo_total =1  # Tiempo total del movimiento (segundos)
-num_puntos = int(tiempo_total/dt)  # Número de puntos en el dataframe  1000
+#Prueba
+#dt=1*10**(-4)
+#tiempo_total =1  # Tiempo total del movimiento (segundos)
+num_puntos = int(tiempo_total/dt)  # Número de puntos en el dataframe  10 000
 #dt=tiempo_total/num_puntos
 time = np.linspace(0, tiempo_total,num_puntos)
 #Distacia de la red en pm
@@ -87,10 +122,9 @@ N=M2
 #Lista de particulas:
 particulas=[]
 #Definir radio de electrones, protones y distancia entre protones en la red:
-r_e, m_e=d/16, constants.m_e
+r_e, m_e=d/16, constants.electron_mass
 r_p, m_p=d/4, constants.m_p
-k_b=1
-T=273.15+20
+
 # LIMITES DE LA CAJA
 limx=((M)*d+2.1*r_p)/2
 limy=((M)*d+2.1*r_p)/2
@@ -115,7 +149,9 @@ for i in range(N):
                     if ((gx-p.r[0])**2+(gy-p.r[1])**2)**0.5 < (r_e + p.radio):
                         solapado = True
                         break
-    gvx, gvy=maxwell.rvs(np.sqrt(k_b * T / m_e)),maxwell.rvs(np.sqrt(k_b * T / m_e))
+    gvx=random_vel()
+    gvy=random_vel()
+    
     #gvx, gvy=0,0
     particulas.append(particula(gx,gy,gvx,gvy,r_e,m_e,color="purple"))
 
@@ -173,10 +209,28 @@ print(f"En {tiempo_total}s pasaron {contador} electrones")
 
 # SE VAN A PROMEDIAR TODOS LOS TAU DE CADA PARTICULA
 prom_tau=[]
+prom_vx,prom_vy=[],[]
+prom_v2=[]
+
 for i in particulas:
     if i.movimiento==True and len(i.tau)>1:
-        prom=prom_tau.append(np.mean(i.tau[1:]))
-print(f"El tiempo de deriva promedio tau fue {np.mean(prom_tau)} segundos")
+        prom_tau.append(np.mean(i.tau[1:]))
+        prom_vx.append(np.mean((i.vx)))
+        prom_vy.append(np.mean((i.vy)))
+        prom_v2.append(np.mean(i.v2))
+
+
+promvx,promvy=np.mean(prom_vx),np.mean(prom_vy)
+velprom=(promvx*promvx+promvy*promvy)**.5
+
+promv2=np.sqrt(np.mean(prom_v2))
+
+print(f"La densidad de electrones en el sistema es {N/(2*limx*2*limy)} electrones por picometro cuadrado")
+print(f"El campo electrico fue de {E[0]} V/pm en dirección x")
+print(f"El tiempo de deriva promedio tau fu2e {np.mean(prom_tau)} segundos")
+print(f"El promedio de velocidades fue {velprom} pm/s")
+print(f"En promedio la velocidad de deriva fue {promvx} pm/m")
+print(f"La velocidad cuadratica media fue de {promv2} pm/s y deberia ser {random_vel(2)} pm/s, la discrepancia porcentual es de {np.abs(promv2-random_vel(2))/random_vel(2)*100}%")
 
 # Calcular las coordenadas x e y de la partícula en función del tiempo
 #Lista de posiciones
