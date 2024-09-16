@@ -74,7 +74,7 @@ E=np.array([1*10**(-10),0.,0.])
 # CREACIÓN DEL DATA FRAME
 # Definir los parámetros del movimiento
 dt=0.005
-tiempo_total = 2  # Tiempo total del movimiento (segundos)
+tiempo_total = 5  # Tiempo total del movimiento (segundos)
 num_puntos = int(tiempo_total/dt)  # Número de puntos en el dataframe  1000
 #dt=tiempo_total/num_puntos
 time = np.linspace(0, tiempo_total,num_puntos)
