@@ -227,7 +227,7 @@ promv2=np.sqrt(np.mean(prom_v2))
 
 print(f"La densidad de electrones en el sistema es {N/(2*limx*2*limy)} electrones por picometro cuadrado")
 print(f"El campo electrico fue de {E[0]} V/pm en dirección x")
-print(f"El tiempo de deriva promedio tau fu2e {np.mean(prom_tau)} segundos")
+print(f"El tiempo de deriva promedio tau fue {np.mean(prom_tau)} segundos")
 print(f"El promedio de velocidades fue {velprom} pm/s")
 print(f"En promedio la velocidad de deriva fue {promvx} pm/m")
 print(f"La velocidad cuadratica media fue de {promv2} pm/s y deberia ser {random_vel(2)} pm/s, la discrepancia porcentual es de {np.abs(promv2-random_vel(2))/random_vel(2)*100}%")
