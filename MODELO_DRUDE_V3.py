@@ -17,15 +17,25 @@ def random_vel(t=0):
         k_b=constants.Boltzmann*10**24 #Constante de boltzmann en (Kg pm^2/s^2)/K
         T=273.15+20
         m_e=constants.electron_mass
-        distribucion=np.sqrt(k_b * T / m_e)
-        if t==0: return maxwell.rvs(np.sqrt(k_b * T / m_e))
+        distribucion=np.sqrt(2*k_b * T / m_e)
+        if t==0: return [np.random.normal(0, distribucion),np.random.normal(0, distribucion)]
         if t!=0: return distribucion
+def random_vel2(t=0,vd=0):
+        k_b=constants.Boltzmann*10**24 #Constante de boltzmann en (Kg pm^2/s^2)/K
+        T=273.15+20
+        m_e=constants.electron_mass
+        velocidad_cuadratica_promedio=np.sqrt(2*k_b * T / m_e)
+        angulo=random.uniform(0,2*np.pi)
+        magnitud_vel=maxwell.rvs(scale=velocidad_cuadratica_promedio)
+        if t==0: return [magnitud_vel*np.sin(angulo),magnitud_vel*np.cos(angulo)]
+        if t!=0: return velocidad_cuadratica_promedio
 #Definir clase particula
 class particula:
-    def __init__(self, x, y, vx, vy, radio=100,m=1,carga=-constants.elementary_charge,movimiento=True,color="purple"):
+    def __init__(self, x, y, vx, vy, radio=100,radio_animacion=100,m=1,carga=-constants.elementary_charge,movimiento=True,color="purple"):
         self.r = np.array([x, y])
         self.v = np.array([vx, vy])
         self.radio=radio
+        self.radio_animacion=radio_animacion
         self.m = m
         self.px = []
         self.py = []
@@ -46,7 +56,7 @@ class particula:
         if self.movimiento==True:
             self.r=self.r+self.v*dt
         
-    def colision(self, particula2=None,t=0):        
+    def colision(self, particula2=None,t=0,vd=0):        
         # Verifica si las particulas se tocan:
         D2 = (particula2.r[0] - self.r[0])*(particula2.r[0] - self.r[0]) + (particula2.r[1] - self.r[1])*(particula2.r[1] - self.r[1])
         suma_radios = self.radio + particula2.radio
@@ -61,60 +71,42 @@ class particula:
             correction = normal * overlap / 2
 
             if particula2.movimiento==False: 
-                self.v[0]=random_vel()
-                self.v[1]=random_vel()
+                nueva_velocidad=random_vel2(0,vd)
+                self.v[0]=nueva_velocidad[0]
+                self.v[1]=nueva_velocidad[1]
                 self.r -= correction
                 self.v=-self.v
             else: 
-                particula2.v[0]=random_vel()
-                particula2.v[1]=random_vel()
+                nueva_velocidad=random_vel2(0,vd)
+                particula2.v[0]=nueva_velocidad[0]
+                particula2.v[1]=nueva_velocidad[1]
                 particula2.r += correction
                 particula2.v=-particula2.v  
             
-            particula2.tau.append(t-particula2.tau[-1])
-            self.tau.append(t-self.tau[-1])
-
+        # Tiempo entre choques
+        #Para particula2
+            tau2=t-particula2.tau[-1]
+            tau1=t-self.tau[-1]
             
-            
-            
+            self.tau.append(tau1)
+            particula2.tau.append(tau2)
             
             
             # Si hay un choque se va a guardar el tiempo en el que ocurre menos el tiempo anterior
             
-            
-            
-
     def campo_electrico(self,E,dt):
         a=self.q*E/self.m
         self.v=a*dt+self.v
-        
-    
-                
-        
-
-
 
 # Definimos un campo electrico en dirección x:
 E=np.array([10**4,0.])*10**-12
 E=np.array([10**8,0.])*10**-12*0
 
-
-
-#TIEMPO REAL DE SIMULACION
-dt=1*10**(-18)
-tiempo_total =5*10**(-15)  # Tiempo total del movimiento (segundos)
-
-#Prueba
-#dt=1*10**(-4)
-#tiempo_total =1  # Tiempo total del movimiento (segundos)
-num_puntos = int(tiempo_total/dt)  # Número de puntos en el dataframe  10 000
-#dt=tiempo_total/num_puntos
-time = np.linspace(0, tiempo_total,num_puntos)
 #Distacia de la red en pm
 d=409
 
 # NUMERO DE IONES MXM
-M=6
+M=3
 M2=M**2
 # NUMERO DE ELECTRONES
 N=M2
@@ -131,7 +123,7 @@ limy=((M)*d+2.1*r_p)/2
 # Definir cuadricula de iones, o atomos y agregarlos a la lista de particula
 for i in range(M):
     for j in range(M):
-        particulas.append(particula((-limx+r_p*1.1)+i*d+d/2,(-limy+r_p*1.1)+j*d+d/2,0,0,r_p,m_p,color="red",movimiento=False))
+        particulas.append(particula((-limx+r_p*1.1)+i*d+d/2,(-limy+r_p*1.1)+j*d+d/2,0,0,r_p,r_p,m_p,color="red",movimiento=False))
 # Definir electrones y agregarlos a la lista particulas, se tiene que tener en cuenta que no se pueden solapar entre ellos ni con los radios de los protones
 # Entonces si se genera alguno que se solape con los demas, se genera otra posicion 
 for i in range(N):
@@ -149,15 +141,27 @@ for i in range(N):
                     if ((gx-p.r[0])**2+(gy-p.r[1])**2)**0.5 < (r_e + p.radio):
                         solapado = True
                         break
-    gvx=random_vel()
-    gvy=random_vel()
+    velocidad_aleatoria=random_vel2()
+    gvx=velocidad_aleatoria[0]
+    gvy=velocidad_aleatoria[1]
     
     #gvx, gvy=0,0
-    particulas.append(particula(gx,gy,gvx,gvy,r_e,m_e,color="purple"))
+    particulas.append(particula(gx,gy,gvx,gvy,r_e*0,r_e,m_e,color="purple"))
 
 
+#TIEMPO REAL DE SIMULACION
+# El dt es dos ordenes de magnitud mas pequeño que el tiempo en el que una particula atravieza todo el sistema
+dt=(2*limx/random_vel2(2))/100
+tiempo_total =1*10**(-13)  # Tiempo total del movimiento (segundos)
+
+num_puntos = int(tiempo_total/dt)  # Número de puntos en el dataframe  10 000
+#dt=tiempo_total/num_puntos
+time = np.linspace(0, tiempo_total,num_puntos)
+#Cuenta los electrones que pasan por el lado izquierdo de la simulacion
 contador=0
+
 for t in time:
+    velocidad_promedio_en_x=[]
     #genera una barra de avance porcentual del programa
     if (t*100/tiempo_total)%5 < .3: print(f"{int(t*100/tiempo_total)} %")
     
@@ -177,7 +181,7 @@ for t in time:
         #elif i.r[1] + i.radio >= limy:
         #    i.r[1] = limy - i.radio  # Reposicionar justo en el borde
         #    i.v[1] = -i.v[1]  # Invertir velocidad
-
+        
         if i.movimiento:
             # Frontera periódica en x
             if i.r[0] - i.radio < -limx:
@@ -190,18 +194,24 @@ for t in time:
                 i.r[1] = limx - i.radio  # Reaparece en el lado derecho
             elif i.r[1] + i.radio > limy:
                 i.r[1] = -limy + i.radio  # Reaparece en el lado izquierdo
+        # VELOCIDAD PROMEDIO EN X
+        if i.movimiento==True:
+            velocidad_promedio_en_x.append(np.mean(i.vx))
 
-        
+    vd=np.mean(velocidad_promedio_en_x)
         
     # Reemplazar el ciclo de colisión por la versión optimizada
     for i, p1 in enumerate(particulas):
         for p2 in particulas[i+1:]:
-            p1.colision(p2,t)
+            p1.colision(p2,t,vd)
     
+        
     # Movimiento de las partículas
     for i in particulas:
         i.campo_electrico(E,dt)
         i.mov(dt)
+        
+
 
 
 
@@ -227,10 +237,10 @@ promv2=np.sqrt(np.mean(prom_v2))
 
 print(f"La densidad de electrones en el sistema es {N/(2*limx*2*limy)} electrones por picometro cuadrado")
 print(f"El campo electrico fue de {E[0]} V/pm en dirección x")
-print(f"El tiempo de deriva promedio tau fu2e {np.mean(prom_tau)} segundos")
+print(f"El tiempo de relajación promedio tau fue {np.mean(prom_tau)} segundos")
 print(f"El promedio de velocidades fue {velprom} pm/s")
 print(f"En promedio la velocidad de deriva fue {promvx} pm/m")
-print(f"La velocidad cuadratica media fue de {promv2} pm/s y deberia ser {random_vel(2)} pm/s, la discrepancia porcentual es de {np.abs(promv2-random_vel(2))/random_vel(2)*100}%")
+print(f"La velocidad cuadratica media fue de {promv2} pm/s y deberia ser {random_vel2(2)} pm/s, la discrepancia porcentual es de {np.abs(promv2-random_vel2(2))/random_vel2(2)*100}%")
 
 # Calcular las coordenadas x e y de la partícula en función del tiempo
 #Lista de posiciones
@@ -241,7 +251,7 @@ for i in particulas:
     y.append(np.array(i.py))
     T.append(time)
     #Se crea una lista de radios para cada particula del tamaño del vector posiciones
-    radios.append([i.radio] * len(i.px))
+    radios.append([i.radio_animacion] * len(i.px))
     colores.append([i.color] * len(i.px))
 
 
@@ -273,7 +283,8 @@ ax.grid(True)
 def init():
     collection.set_paths([])
     return collection,
-
+# Texto para el temporizador
+texto_tiempo= ax.text(0.02, 0.95, '', transform=ax.transAxes)
 # Función de actualización para la animación
 def update(frame):
     data = df[df['time'] == frame]
@@ -284,26 +295,31 @@ def update(frame):
     # Crear nuevas elipses para el frame actual
     patches = []
     for (x, y, r,c) in zip(x_data, y_data, sizes,colores):
-        ellipse = Ellipse(xy=(x, y), width=2*r, height=2*r, angle=0, edgecolor='none', facecolor=c)
+        ellipse = Ellipse(xy=(x, y), width=2*r, height=2*r, angle=0, edgecolor="none", facecolor=c)
         patches.append(ellipse)
     
     
     # Actualizar la colección de parches
     collection.set_paths(patches)
     collection.set_facecolor(colores)
-    return collection,
+     # Actualizar el temporizador
+    tiempo_actual = frame * dt/(4*10**-16)
+    texto_tiempo.set_text(f"Tiempo: {tiempo_actual:.2e} s")
+    
+    # Devolver la colección y el texto actualizado
+    return collection, tiempo_actual
 
 # Crear la animación
 ani = animation.FuncAnimation(
     fig, update, frames=np.unique(df['time']),
     init_func=init, repeat=False,
-    interval=15
-)
+    interval=15)
 
 
 fig.tight_layout()
 # Guardar la animación
-#ani.save('animacion_DRUDE_V3.mp4', writer='ffmpeg')
+#ani.save('animacion_DRUDE_V4.mp4', writer='ffmpeg')
+
 plt.show()
 
 
