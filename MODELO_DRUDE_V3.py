@@ -18,7 +18,7 @@ def random_vel(t=0):
         T=273.15+20
         m_e=constants.electron_mass
         distribucion=np.sqrt(k_b * T / m_e)
-        if t==0: return np.random.normal(0, distribucion)
+        if t==0: return maxwell.rvs(np.sqrt(k_b * T / m_e))
         if t!=0: return distribucion
 #Definir clase particula
 class particula:
