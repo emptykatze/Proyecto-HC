@@ -1,5 +1,3 @@
-import plotly.graph_objects as go
-import plotly.express as px
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import numpy as np
@@ -13,14 +11,14 @@ from scipy.stats import maxwell
 Se utilizaron unidades de picometros para la distancia, para que la distancia entre iones de la red no
 tuvierta un numero muy grande, por lo que se utilizó 1 m = 1e12 pm
 """
-def random_vel(t=0):
-        k_b=constants.Boltzmann*10**24 #Constante de boltzmann en (Kg pm^2/s^2)/K
+def random_vel2(t=0,vd=0):
+        k_b=constants.Boltzmann #Constante de boltzmann en (Kg pm^2/ps^2)/K
         T=273.15+20
         m_e=constants.electron_mass
         distribucion=np.sqrt(2*k_b * T / m_e)
-        if t==0: return [np.random.normal(0, distribucion),np.random.normal(0, distribucion)]
+        if t==0: return [np.random.normal(vd, distribucion),np.random.normal(vd, distribucion)]
         if t!=0: return distribucion
-def random_vel2(t=0,vd=0):
+def random_vel(t=0,vd=0):
         k_b=constants.Boltzmann*10**24 #Constante de boltzmann en (Kg pm^2/s^2)/K
         T=273.15+20
         m_e=constants.electron_mass
@@ -99,17 +97,17 @@ class particula:
         self.v=a*dt+self.v
 
 # Definimos un campo electrico en dirección x:
-E=np.array([10**4,0.])*10**-12
-E=np.array([10**8,0.])*10**-12*0
+
+E=np.array([10**-4,0.])
 
 #Distacia de la red en pm
 d=409
 
 # NUMERO DE IONES MXM
-M=3
+M=6
 M2=M**2
 # NUMERO DE ELECTRONES
-N=M2
+N=M2*10
 
 #Lista de particulas:
 particulas=[]
@@ -151,8 +149,10 @@ for i in range(N):
 
 #TIEMPO REAL DE SIMULACION
 # El dt es dos ordenes de magnitud mas pequeño que el tiempo en el que una particula atravieza todo el sistema
+
 dt=(2*limx/random_vel2(2))/100
-tiempo_total =1*10**(-13)  # Tiempo total del movimiento (segundos)
+
+tiempo_total =dt*5  # Tiempo total del movimiento (segundos)
 
 num_puntos = int(tiempo_total/dt)  # Número de puntos en el dataframe  10 000
 #dt=tiempo_total/num_puntos
@@ -185,15 +185,15 @@ for t in time:
         if i.movimiento:
             # Frontera periódica en x
             if i.r[0] - i.radio < -limx:
-                i.r[0] = limx - i.radio  # Reaparece en el lado derecho
+                i.r[0] = 2*limx - i.radio+ i.r[0]  # Reaparece en el lado derecho
                 contador += 1
             elif i.r[0] + i.radio > limx:
-                i.r[0] = -limx + i.radio  # Reaparece en el lado izquierdo
+                i.r[0] = -limx + i.radio-i.r[0]  # Reaparece en el lado izquierdo
             # Frontera periódica en y
             if i.r[1] - i.radio < -limy:
-                i.r[1] = limx - i.radio  # Reaparece en el lado derecho
+                i.r[1] = limx - i.radio +i.r[1]  # Reaparece en el lado derecho
             elif i.r[1] + i.radio > limy:
-                i.r[1] = -limy + i.radio  # Reaparece en el lado izquierdo
+                i.r[1] = -limy + i.radio- i.r[1]  # Reaparece en el lado izquierdo
         # VELOCIDAD PROMEDIO EN X
         if i.movimiento==True:
             velocidad_promedio_en_x.append(np.mean(i.vx))
@@ -222,14 +222,21 @@ prom_tau=[]
 prom_vx,prom_vy=[],[]
 prom_v2=[]
 
+histogramay=[]
+histogramax=[]
+
 for i in particulas:
     if i.movimiento==True and len(i.tau)>1:
         prom_tau.append(np.mean(i.tau[1:]))
         prom_vx.append(np.mean((i.vx)))
         prom_vy.append(np.mean((i.vy)))
         prom_v2.append(np.mean(i.v2))
+        histogramay.append(i.vy[-1])
+        histogramax.append(i.vx[-1])
 
 
+plt.hist(histogramay, bins=10)
+plt.show()
 promvx,promvy=np.mean(prom_vx),np.mean(prom_vy)
 velprom=(promvx*promvx+promvy*promvy)**.5
 
@@ -240,7 +247,7 @@ print(f"El campo electrico fue de {E[0]} V/pm en dirección x")
 print(f"El tiempo de relajación promedio tau fue {np.mean(prom_tau)} segundos")
 print(f"El promedio de velocidades fue {velprom} pm/s")
 print(f"En promedio la velocidad de deriva fue {promvx} pm/m")
-print(f"La velocidad cuadratica media fue de {promv2} pm/s y deberia ser {random_vel2(2)} pm/s, la discrepancia porcentual es de {np.abs(promv2-random_vel2(2))/random_vel2(2)*100}%")
+print(f"La velocidad cuadratica media fue de {promv2} pm/s y deberia ser {random_vel2(2)} pm/s, la discrepancia porcentual es de {np.abs(promv2-random_vel2(2,promvx))/random_vel2(2,promvx)*100}%")
 
 # Calcular las coordenadas x e y de la partícula en función del tiempo
 #Lista de posiciones
@@ -321,5 +328,3 @@ fig.tight_layout()
 #ani.save('animacion_DRUDE_V4.mp4', writer='ffmpeg')
 
 plt.show()
-
-
