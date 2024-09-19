@@ -7,6 +7,8 @@ from matplotlib.patches import Ellipse
 from matplotlib.collections import PatchCollection
 from scipy import constants
 from scipy.stats import maxwell
+from scipy.stats import norm
+
 """
 Se utilizaron unidades de picometros para la distancia, para que la distancia entre iones de la red no
 tuvierta un numero muy grande, por lo que se utilizó 1 m = 1e12 pm
@@ -146,20 +148,20 @@ for i in range(N):
 #TIEMPO REAL DE SIMULACION
 # El dt es dos ordenes de magnitud mas pequeño que el tiempo en el que una particula atravieza todo el sistema
 
-dt=(2*limx/random_vel2(2))/100
+dt=(2*limx/random_vel2(2))/100 #  0.00028310447443648343
 
-tiempo_total =dt*100000  # Tiempo total del movimiento (segundos)
+tiempo_total =dt*10000  # Tiempo total del movimiento (segundos)
 
 num_puntos = int(tiempo_total/dt)  # Número de puntos en el dataframe  10 000
 #dt=tiempo_total/num_puntos
 time = np.linspace(0, tiempo_total,num_puntos)
 #Cuenta los electrones que pasan por el lado izquierdo de la simulacion
 contador=0
-
+vd=0
 for t in time:
     velocidad_promedio_en_x=[]
     #genera una barra de avance porcentual del programa
-    if (t*100/tiempo_total)%5 < .3: print(f"{int(t*100/tiempo_total)} %")
+    if (t*100/tiempo_total)%5 < .3 and int(t*100/tiempo_total)!=int((t-dt)*100/tiempo_total): print(f"{int(t*100/tiempo_total)} %")
     
     for i in particulas:
         # Colisiones con los límites horizontales
@@ -191,10 +193,10 @@ for t in time:
             elif i.r[1] + i.radio > limy:
                 i.r[1] = -limy + i.radio- i.r[1]  # Reaparece en el lado izquierdo
         # VELOCIDAD PROMEDIO EN X
-        if i.movimiento==True:
+        if i.movimiento==True and len(i.vx)>0:
             velocidad_promedio_en_x.append(np.mean(i.vx))
-
-    vd=np.mean(velocidad_promedio_en_x)
+    if len(velocidad_promedio_en_x)>0:
+        vd=np.mean(velocidad_promedio_en_x)
         
     # Reemplazar el ciclo de colisión por la versión optimizada
     for i, p1 in enumerate(particulas):
@@ -220,23 +222,55 @@ prom_v2=[]
 
 histogramay=[]
 histogramax=[]
-
+histogramaxfinal=[]
 for i in particulas:
     if i.movimiento==True and len(i.tau)>1:
         prom_tau.append(np.mean(i.tau[1:]))
         prom_vx.append(np.mean((i.vx)))
         prom_vy.append(np.mean((i.vy)))
         prom_v2.append(np.mean(i.v2))
-        histogramay.append(i.vy[-1])
-        histogramax.append(i.vx[-1])
+        histogramay+=i.vy
+        histogramax+=i.vx
+        histogramaxfinal+=i.vx[-15:-1]
 
-
-plt.hist(histogramay, bins=60)
-plt.show()
+#PROMEDIO DE VELOCIDADES Y VELOCIDADES CUADRATICAS
 promvx,promvy=np.mean(prom_vx),np.mean(prom_vy)
 velprom=(promvx*promvx+promvy*promvy)**.5
-
 promv2=np.sqrt(np.mean(prom_v2))
+
+#HISTOGRAMA PARA Y
+plt.figure(figsize=(10, 5))
+plt.title('Histograma velocidades en Y')
+VY= np.linspace( - 4*velocidad_cuadratica_promedio,   4*velocidad_cuadratica_promedio, 1000)
+DATAVY= norm.pdf(VY, 0, velocidad_cuadratica_promedio)
+plt.plot(VY, DATAVY, color='darkslateblue', linewidth=3)
+plt.hist(histogramay, bins=60, density=True,color="mediumslateblue")
+plt.savefig("Histograma_Vel_Y")
+# HISTOGRAMA PARA X EN TODOS LOS TIEMPOS
+plt.figure(figsize=(10, 5))
+plt.title('Histograma velocidades en X para todos los tiempos')
+    #Agrega una linea vertical en la velocidad de deriva
+plt.axvline(x=promvx, color='yellowgreen', linestyle='--', linewidth=3, label='Velocidad de deriva')
+VX= np.linspace( promvx- 4*velocidad_cuadratica_promedio, promvx+4*velocidad_cuadratica_promedio, 1000)
+DATAVX= norm.pdf(VX, promvx, velocidad_cuadratica_promedio)
+plt.plot(VX, DATAVX, 'yellowgreen', linewidth=2)
+plt.hist(histogramax, bins=60, density=True,color="forestgreen")
+plt.legend()
+plt.savefig("Histograma_Vel_X_TODO_T")
+
+
+# HISTOGRAMA PARA X al final
+plt.figure(figsize=(10, 5))
+plt.title('Histograma velocidades en X para el final')
+    #Agrega una linea vertical en la velocidad de deriva
+plt.axvline(x=promvx, color='darkblue', linestyle='--', linewidth=3, label='Velocidad de deriva')
+VX= np.linspace( promvx- 4*velocidad_cuadratica_promedio, promvx+4*velocidad_cuadratica_promedio, 1000)
+DATAVX= norm.pdf(VX, promvx, velocidad_cuadratica_promedio)
+plt.plot(VX, DATAVX, 'darkblue', linewidth=2)
+plt.hist(histogramaxfinal, bins=60, density=True,color="royalblue")
+plt.legend()
+plt.savefig("Histograma_Vel_X_TODO_T")
+
 
 print(f"La densidad de electrones en el sistema es {N/(2*limx*2*limy)} electrones por picometro cuadrado")
 print(f"El campo electrico fue de {E[0]} V/pm en dirección x")
