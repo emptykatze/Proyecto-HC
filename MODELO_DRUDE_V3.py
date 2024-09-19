@@ -14,11 +14,11 @@ Se utilizaron unidades de picometros para la distancia, para que la distancia en
 tuvierta un numero muy grande, por lo que se utilizó 1 m = 1e12 pm
 """
 k_b=constants.Boltzmann #Constante de boltzmann en (Kg pm^2/ps^2)/K
-T=273.15+20
+T=77.
 m_e=constants.electron_mass
 velocidad_cuadratica_promedio=np.sqrt(2*k_b * T / m_e)
 def random_vel2(t=0,vd=0):
-        if t==0: return [np.random.normal(vd, velocidad_cuadratica_promedio),np.random.normal(vd, velocidad_cuadratica_promedio)]
+        if t==0: return [np.random.normal(vd, velocidad_cuadratica_promedio),np.random.normal(0,velocidad_cuadratica_promedio)]
         if t!=0: return velocidad_cuadratica_promedio
 def random_vel(t=0,vd=0):
         angulo=random.uniform(0,2*np.pi)
@@ -38,6 +38,7 @@ class particula:
         self.vx = []
         self.vy = []
         self.v2 = []
+        self.v2raiz = []
         self.q=carga
         self.color=color
         self.movimiento=movimiento
@@ -49,6 +50,8 @@ class particula:
         self.vx.append(self.v[0])
         self.vy.append(self.v[1])
         self.v2.append(self.v[0]*self.v[0]+self.v[1]*self.v[1])
+        self.v2raiz.append((self.v[0]*self.v[0]+self.v[1]*self.v[1])*.5)
+
         if self.movimiento==True:
             self.r=self.r+self.v*dt
         
@@ -148,9 +151,9 @@ for i in range(N):
 #TIEMPO REAL DE SIMULACION
 # El dt es dos ordenes de magnitud mas pequeño que el tiempo en el que una particula atravieza todo el sistema
 
-dt=(2*limx/random_vel2(2))/100 #  0.00028310447443648343
+dt=(2*limx/random_vel2(2))/200 #  0.00028310447443648343
 
-tiempo_total =dt*10000*3  # Tiempo total del movimiento (segundos)
+tiempo_total =dt*1000  # Tiempo total del movimiento (segundos)
 
 num_puntos = int(tiempo_total/dt)  # Número de puntos en el dataframe  10 000
 #dt=tiempo_total/num_puntos
@@ -223,6 +226,7 @@ prom_v2=[]
 histogramay=[]
 histogramax=[]
 histogramaxfinal=[]
+histogramav2raiz=[]
 for i in particulas:
     if i.movimiento==True and len(i.tau)>1:
         prom_tau.append(np.mean(i.tau[1:]))
@@ -232,6 +236,7 @@ for i in particulas:
         histogramay+=i.vy
         histogramax+=i.vx
         histogramaxfinal+=i.vx[-15:-1]
+        histogramav2raiz+=(i.v2raiz)
 
 #PROMEDIO DE VELOCIDADES Y VELOCIDADES CUADRATICAS
 promvx,promvy=np.mean(prom_vx),np.mean(prom_vy)
@@ -271,16 +276,33 @@ plt.hist(histogramaxfinal, bins=60, density=True,color="royalblue")
 plt.legend()
 plt.savefig("Histograma_Vel_X_TODO_T")
 
+
+# HISTOGRAMA PARA LA VELOCIDAD CUADRATICA
+plt.figure(figsize=(10, 5))
+plt.title('Histograma Velocidad cuadratica')
+    #Agrega una linea vertical en la velocidad de deriva
+plt.axvline(x=promvx, color='darkblue', linestyle='--', linewidth=3, label='Velocidad de deriva')
+VX= np.linspace( min(histogramav2raiz), max(histogramav2raiz), 1000)
+DATAVX= ((norm.pdf(VX, promvx, velocidad_cuadratica_promedio)**2)+(norm.pdf(VX, 0, velocidad_cuadratica_promedio)**2))**.5
+plt.plot(VX, DATAVX, 'darkblue', linewidth=2)
+plt.hist(histogramav2raiz, bins=60, density=True,color="royalblue")
+plt.legend()
+plt.savefig("Histograma_velocidad_cuadratica")
+
+
+
 #Densidad de electrones
-densidad_e=N/(2*limx*2*limy)
-print(f"La densidad de electrones en el sistema es {densidad_e} electrones por picometro cuadrado")
-print(f"El campo electrico fue de {E[0]} V/pm en dirección x")
-print(f"El tiempo de relajación promedio tau fue {np.mean(prom_tau)} segundos")
+densidad_e=(N/(2*limx*2*limy))*10**-24
+#campo electrico en voltios / metro:
+E=E*10**-12
+print(f"La densidad de electrones en el sistema es {densidad_e} electrones por metro cuadrado")
+print(f"El campo electrico fue de {E[0]} V/m en dirección x")
+print(f"El tiempo de relajación promedio tau fue {np.mean(prom_tau)} pico segundos")
 print(f"El tiempo de relajación promedio a partir de la velocidad de deriva y el campo electrico {-promvx*m_e/(E*constants.elementary_charge)} segundos")
-print(f"La conductividad del material a partir del tau fue de {N/(2*limx*2*limy)*constants.elementary_charge**2*np.mean(prom_tau)/constants.electron_mass}")
-print(f"La conductividad del material a partir de la velocidad de deriva fue fue de {N/(2*limx*2*limy)*constants.elementary_charge**2*np.mean(prom_tau)/constants.electron_mass}")
-print(f"La conductividad del material a partir J/E 1 {densidad_e*constants.elementary_charge*promvx/E}")
-print(f"La conductividad del material a partir J/E 2 {contador/(2*limx*E)}")
+print(f"La conductividad superficial del material a partir del tau fue de {N/(2*limx*2*limy)*constants.elementary_charge**2*np.mean(prom_tau)/constants.electron_mass}")
+print(f"La conductividad superficial del material a partir de la velocidad de deriva fue fue de {N/(2*limx*2*limy)*constants.elementary_charge**2*np.mean(prom_tau)/constants.electron_mass}")
+print(f"La conductividad superficial del material a partir J/E 1 {densidad_e*constants.elementary_charge*promvx/E}")
+print(f"La conductividad  superficial del material a partir J/E 2 {contador/(2*limx*E)}")
 print(f"El promedio de velocidades fue {velprom} m/s")
 print(f"En promedio la velocidad de deriva fue {promvx} m/s")
 print(f"La velocidad cuadratica media fue de {promv2} m/s y deberia ser {random_vel2(2)} m/s, la discrepancia porcentual es de {np.abs(promv2-random_vel2(2,promvx))/random_vel2(2,promvx)*100}%")
