@@ -103,7 +103,7 @@ d=409
 M=6
 M2=M**2
 # NUMERO DE ELECTRONES
-N=M2*10
+N=M2
 
 #Lista de particulas:
 particulas=[]
