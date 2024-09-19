@@ -150,7 +150,7 @@ for i in range(N):
 
 dt=(2*limx/random_vel2(2))/100 #  0.00028310447443648343
 
-tiempo_total =dt*10000  # Tiempo total del movimiento (segundos)
+tiempo_total =dt*10000*3  # Tiempo total del movimiento (segundos)
 
 num_puntos = int(tiempo_total/dt)  # Número de puntos en el dataframe  10 000
 #dt=tiempo_total/num_puntos
@@ -264,17 +264,23 @@ plt.figure(figsize=(10, 5))
 plt.title('Histograma velocidades en X para el final')
     #Agrega una linea vertical en la velocidad de deriva
 plt.axvline(x=promvx, color='darkblue', linestyle='--', linewidth=3, label='Velocidad de deriva')
-VX= np.linspace( promvx- 4*velocidad_cuadratica_promedio, promvx+4*velocidad_cuadratica_promedio, 1000)
+VX= np.linspace( min(histogramaxfinal), max(histogramaxfinal), 1000)
 DATAVX= norm.pdf(VX, promvx, velocidad_cuadratica_promedio)
 plt.plot(VX, DATAVX, 'darkblue', linewidth=2)
 plt.hist(histogramaxfinal, bins=60, density=True,color="royalblue")
 plt.legend()
 plt.savefig("Histograma_Vel_X_TODO_T")
 
-
-print(f"La densidad de electrones en el sistema es {N/(2*limx*2*limy)} electrones por picometro cuadrado")
+#Densidad de electrones
+densidad_e=N/(2*limx*2*limy)
+print(f"La densidad de electrones en el sistema es {densidad_e} electrones por picometro cuadrado")
 print(f"El campo electrico fue de {E[0]} V/pm en dirección x")
 print(f"El tiempo de relajación promedio tau fue {np.mean(prom_tau)} segundos")
+print(f"El tiempo de relajación promedio a partir de la velocidad de deriva y el campo electrico {-promvx*m_e/(E*constants.elementary_charge)} segundos")
+print(f"La conductividad del material a partir del tau fue de {N/(2*limx*2*limy)*constants.elementary_charge**2*np.mean(prom_tau)/constants.electron_mass}")
+print(f"La conductividad del material a partir de la velocidad de deriva fue fue de {N/(2*limx*2*limy)*constants.elementary_charge**2*np.mean(prom_tau)/constants.electron_mass}")
+print(f"La conductividad del material a partir J/E 1 {densidad_e*constants.elementary_charge*promvx/E}")
+print(f"La conductividad del material a partir J/E 2 {contador/(2*limx*E)}")
 print(f"El promedio de velocidades fue {velprom} m/s")
 print(f"En promedio la velocidad de deriva fue {promvx} m/s")
 print(f"La velocidad cuadratica media fue de {promv2} m/s y deberia ser {random_vel2(2)} m/s, la discrepancia porcentual es de {np.abs(promv2-random_vel2(2,promvx))/random_vel2(2,promvx)*100}%")
