@@ -145,13 +145,13 @@ for i in range(N):
     gvy=velocidad_aleatoria[1]
     
     #gvx, gvy=0,0
-    particulas.append(particula(gx,gy,gvx,gvy,r_e*0,r_e,m_e,color="purple"))
+    particulas.append(particula(gx,gy,gvx,gvy,r_e,r_e,m_e,color="purple"))
 
 
 #TIEMPO REAL DE SIMULACION
 # El dt es dos ordenes de magnitud mas pequeño que el tiempo en el que una particula atravieza todo el sistema
 
-dt=(2*limx/random_vel2(2))/200 #  0.00028310447443648343
+dt=(2*limx/random_vel2(2))/1000 #  0.00028310447443648343
 
 tiempo_total =dt*1000  # Tiempo total del movimiento (segundos)
 
@@ -164,7 +164,7 @@ vd=0
 for t in time:
     velocidad_promedio_en_x=[]
     #genera una barra de avance porcentual del programa
-    if (t*100/tiempo_total)%5 < .3 and int(t*100/tiempo_total)!=int((t-dt)*100/tiempo_total): print(f"{int(t*100/tiempo_total)} %")
+    if (t*100/tiempo_total)%1 < .3 and int(t*100/tiempo_total)!=int((t-dt)*100/tiempo_total): print(f"{int(t*100/tiempo_total)} %")
     
     for i in particulas:
         # Colisiones con los límites horizontales
@@ -189,12 +189,12 @@ for t in time:
                 i.r[0] = 2*limx - i.radio+ i.r[0]  # Reaparece en el lado derecho
                 contador += 1
             elif i.r[0] + i.radio > limx:
-                i.r[0] = -limx + i.radio-i.r[0]  # Reaparece en el lado izquierdo
+                i.r[0] = -2*limx + i.radio-i.r[0]  # Reaparece en el lado izquierdo
             # Frontera periódica en y
             if i.r[1] - i.radio < -limy:
-                i.r[1] = limx - i.radio +i.r[1]  # Reaparece en el lado derecho
+                i.r[1] = 2*limx - i.radio +i.r[1]  # Reaparece en el lado derecho
             elif i.r[1] + i.radio > limy:
-                i.r[1] = -limy + i.radio- i.r[1]  # Reaparece en el lado izquierdo
+                i.r[1] = -2*limy + i.radio- i.r[1]  # Reaparece en el lado izquierdo
         # VELOCIDAD PROMEDIO EN X
         if i.movimiento==True and len(i.vx)>0:
             velocidad_promedio_en_x.append(np.mean(i.vx))
@@ -249,7 +249,7 @@ plt.title('Histograma velocidades en Y')
 VY= np.linspace( - 4*velocidad_cuadratica_promedio,   4*velocidad_cuadratica_promedio, 1000)
 DATAVY= norm.pdf(VY, 0, velocidad_cuadratica_promedio)
 plt.plot(VY, DATAVY, color='darkslateblue', linewidth=3)
-plt.hist(histogramay, bins=60, density=True,color="mediumslateblue")
+plt.hist(histogramay, bins=50, density=True,color="mediumslateblue")
 plt.savefig("Histograma_Vel_Y")
 # HISTOGRAMA PARA X EN TODOS LOS TIEMPOS
 plt.figure(figsize=(10, 5))
@@ -259,7 +259,7 @@ plt.axvline(x=promvx, color='yellowgreen', linestyle='--', linewidth=3, label='V
 VX= np.linspace( promvx- 4*velocidad_cuadratica_promedio, promvx+4*velocidad_cuadratica_promedio, 1000)
 DATAVX= norm.pdf(VX, promvx, velocidad_cuadratica_promedio)
 plt.plot(VX, DATAVX, 'yellowgreen', linewidth=2)
-plt.hist(histogramax, bins=60, density=True,color="forestgreen")
+plt.hist(histogramax, bins=50, density=True,color="forestgreen")
 plt.legend()
 plt.savefig("Histograma_Vel_X_TODO_T")
 
@@ -269,10 +269,10 @@ plt.figure(figsize=(10, 5))
 plt.title('Histograma velocidades en X para el final')
     #Agrega una linea vertical en la velocidad de deriva
 plt.axvline(x=promvx, color='darkblue', linestyle='--', linewidth=3, label='Velocidad de deriva')
-VX= np.linspace( min(histogramaxfinal), max(histogramaxfinal), 1000)
+VX= np.linspace( promvx- 4*velocidad_cuadratica_promedio, promvx+4*velocidad_cuadratica_promedio, 1000)
 DATAVX= norm.pdf(VX, promvx, velocidad_cuadratica_promedio)
 plt.plot(VX, DATAVX, 'darkblue', linewidth=2)
-plt.hist(histogramaxfinal, bins=60, density=True,color="royalblue")
+plt.hist(histogramaxfinal, bins=50, density=True,color="royalblue")
 plt.legend()
 plt.savefig("Histograma_Vel_X_TODO_T")
 
@@ -282,10 +282,10 @@ plt.figure(figsize=(10, 5))
 plt.title('Histograma Velocidad cuadratica')
     #Agrega una linea vertical en la velocidad de deriva
 plt.axvline(x=promvx, color='darkblue', linestyle='--', linewidth=3, label='Velocidad de deriva')
-VX= np.linspace( min(histogramav2raiz), max(histogramav2raiz), 1000)
+VX= np.linspace( 0, promvx+4*velocidad_cuadratica_promedio, 1000)
 DATAVX= ((norm.pdf(VX, promvx, velocidad_cuadratica_promedio)**2)+(norm.pdf(VX, 0, velocidad_cuadratica_promedio)**2))**.5
 plt.plot(VX, DATAVX, 'darkblue', linewidth=2)
-plt.hist(histogramav2raiz, bins=60, density=True,color="royalblue")
+plt.hist(histogramav2raiz, bins=50, density=True,color="royalblue")
 plt.legend()
 plt.savefig("Histograma_velocidad_cuadratica")
 
@@ -383,6 +383,6 @@ ani = animation.FuncAnimation(
 
 fig.tight_layout()
 # Guardar la animación
-#ani.save('animacion_DRUDE_V4.mp4', writer='ffmpeg')
+ani.save('animacion_DRUDE_V5.mp4', writer='ffmpeg')
 
 plt.show()
