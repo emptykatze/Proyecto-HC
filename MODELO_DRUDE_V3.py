@@ -11,18 +11,14 @@ from scipy.stats import maxwell
 Se utilizaron unidades de picometros para la distancia, para que la distancia entre iones de la red no
 tuvierta un numero muy grande, por lo que se utilizó 1 m = 1e12 pm
 """
+k_b=constants.Boltzmann #Constante de boltzmann en (Kg pm^2/ps^2)/K
+T=273.15+20
+m_e=constants.electron_mass
+velocidad_cuadratica_promedio=np.sqrt(2*k_b * T / m_e)
 def random_vel2(t=0,vd=0):
-        k_b=constants.Boltzmann #Constante de boltzmann en (Kg pm^2/ps^2)/K
-        T=273.15+20
-        m_e=constants.electron_mass
-        distribucion=np.sqrt(2*k_b * T / m_e)
-        if t==0: return [np.random.normal(vd, distribucion),np.random.normal(vd, distribucion)]
-        if t!=0: return distribucion
+        if t==0: return [np.random.normal(vd, velocidad_cuadratica_promedio),np.random.normal(vd, velocidad_cuadratica_promedio)]
+        if t!=0: return velocidad_cuadratica_promedio
 def random_vel(t=0,vd=0):
-        k_b=constants.Boltzmann*10**24 #Constante de boltzmann en (Kg pm^2/s^2)/K
-        T=273.15+20
-        m_e=constants.electron_mass
-        velocidad_cuadratica_promedio=np.sqrt(2*k_b * T / m_e)
         angulo=random.uniform(0,2*np.pi)
         magnitud_vel=maxwell.rvs(scale=velocidad_cuadratica_promedio)
         if t==0: return [magnitud_vel*np.sin(angulo),magnitud_vel*np.cos(angulo)]
@@ -152,7 +148,7 @@ for i in range(N):
 
 dt=(2*limx/random_vel2(2))/100
 
-tiempo_total =dt*5  # Tiempo total del movimiento (segundos)
+tiempo_total =dt*100000  # Tiempo total del movimiento (segundos)
 
 num_puntos = int(tiempo_total/dt)  # Número de puntos en el dataframe  10 000
 #dt=tiempo_total/num_puntos
@@ -235,7 +231,7 @@ for i in particulas:
         histogramax.append(i.vx[-1])
 
 
-plt.hist(histogramay, bins=10)
+plt.hist(histogramay, bins=60)
 plt.show()
 promvx,promvy=np.mean(prom_vx),np.mean(prom_vy)
 velprom=(promvx*promvx+promvy*promvy)**.5
@@ -245,9 +241,9 @@ promv2=np.sqrt(np.mean(prom_v2))
 print(f"La densidad de electrones en el sistema es {N/(2*limx*2*limy)} electrones por picometro cuadrado")
 print(f"El campo electrico fue de {E[0]} V/pm en dirección x")
 print(f"El tiempo de relajación promedio tau fue {np.mean(prom_tau)} segundos")
-print(f"El promedio de velocidades fue {velprom} pm/s")
-print(f"En promedio la velocidad de deriva fue {promvx} pm/m")
-print(f"La velocidad cuadratica media fue de {promv2} pm/s y deberia ser {random_vel2(2)} pm/s, la discrepancia porcentual es de {np.abs(promv2-random_vel2(2,promvx))/random_vel2(2,promvx)*100}%")
+print(f"El promedio de velocidades fue {velprom} m/s")
+print(f"En promedio la velocidad de deriva fue {promvx} m/s")
+print(f"La velocidad cuadratica media fue de {promv2} m/s y deberia ser {random_vel2(2)} m/s, la discrepancia porcentual es de {np.abs(promv2-random_vel2(2,promvx))/random_vel2(2,promvx)*100}%")
 
 # Calcular las coordenadas x e y de la partícula en función del tiempo
 #Lista de posiciones
