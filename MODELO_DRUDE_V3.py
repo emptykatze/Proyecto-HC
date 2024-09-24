@@ -150,7 +150,7 @@ for i in range(N):
 
 dt=(2*limx/random_vel2(2))/200 #  0.00028310447443648343
 
-tiempo_total =dt*200  # Tiempo total del movimiento (pico segundos)
+tiempo_total =dt*20000  # Tiempo total del movimiento (pico segundos)
 
 num_puntos = int(tiempo_total/dt)  # Número de puntos en el dataframe  10 000
 #dt=tiempo_total/num_puntos
@@ -226,17 +226,7 @@ file.close()
 #promv2=np.sqrt(np.mean(prom_v2))
 
 
-# HISTOGRAMA PARA X EN TODOS LOS TIEMPOS
-#plt.figure(figsize=(10, 5))
-#plt.title('Histograma velocidades en X para todos los tiempos')
-    #Agrega una linea vertical en la velocidad de deriva
-#plt.axvline(x=promvx, color='yellowgreen', linestyle='--', linewidth=3, label='Velocidad de deriva')
-#VX= np.linspace( promvx- 4*velocidad_cuadratica_promedio, promvx+4*velocidad_cuadratica_promedio, 1000)
-#DATAVX= norm.pdf(VX, promvx, velocidad_cuadratica_promedio)
-#plt.plot(VX, DATAVX, 'yellowgreen', linewidth=2)
-#plt.hist(histogramax, bins=50, density=True,color="forestgreen")
-#plt.legend()
-#plt.savefig("Histograma_Vel_X_TODO_T")
+
 
 
 # HISTOGRAMA PARA X al final
