@@ -150,7 +150,7 @@ for i in range(N):
 
 dt=(2*limx/random_vel2(2))/200 #  0.00028310447443648343
 
-tiempo_total =dt*50000  # Tiempo total del movimiento (segundos)
+tiempo_total =dt*70000  # Tiempo total del movimiento (segundos)
 
 num_puntos = int(tiempo_total/dt)  # Número de puntos en el dataframe  10 000
 #dt=tiempo_total/num_puntos
@@ -224,11 +224,11 @@ histogramay=[]
 histogramax=[]
 histogramaxfinal=[]
 histogramav2raiz=[]
-with open('vx.dat', 'w') as file:
+with open('vx2.dat', 'w') as file:
     for i in particulas:
         # Escribir cada fila en el archivo separando los valores por un espacio
         file.write(' '.join(map(str, i.vx)) + '\n')
-with open('vy.dat', 'w') as file:
+with open('vy2.dat', 'w') as file:
     for i in particulas:
         # Escribir cada fila en el archivo separando los valores por un espacio
         file.write(' '.join(map(str, i.vy)) + '\n')
@@ -244,7 +244,7 @@ for i in particulas:
         histogramaxfinal+=i.vx[-15:-1]
         histogramav2raiz+=(i.v2raiz)
 # Abrir el archivo manualmente
-file = open('velocidades_sergio.dat', 'w')
+file = open('velocidades_sergio2.dat', 'w')
 # Escribir datos en el archivo
 for i in particulas:
     if i.movimiento:    file.write(' '.join(map(str, i.vx)) )
@@ -254,19 +254,19 @@ for i in particulas:
 # Cerrar el archivo manualmente
 file.close() 
 
-file = open('tau.dat', 'w')
+file = open('tau2.dat', 'w')
 for i in particulas:
     if i.movimiento:    file.write(' '.join(map(str, i.tau[1:] ))+"\n" )
 file.close() 
 
-file = open('velocidades_sergio.dat', 'w')
+file = open('velocidades_sergio2.dat', 'w')
 #PROMEDIO DE VELOCIDADES Y VELOCIDADES CUADRATICAS
 promvx,promvy=np.mean(prom_vx),np.mean(prom_vy)
 velprom=(promvx*promvx+promvy*promvy)**.5
 promv2=np.sqrt(np.mean(prom_v2))
 
 #HISTOGRAMA PARA Y
-f=open("Velocidades.dat","w")
+f=open("Velocidades2.dat","w")
 plt.figure(figsize=(10, 5))
 plt.title('Histograma velocidades en Y')
 VY= np.linspace( - 4*velocidad_cuadratica_promedio,   4*velocidad_cuadratica_promedio, 1000)
@@ -321,7 +321,7 @@ plt.savefig("Histograma_velocidad_cuadratica")
 densidad_e=(N/(2*limx*2*limy))*10**-24
 #campo electrico en voltios / metro:
 E=E*10**12
-with open('datos.txt', 'w') as f:
+with open('datos2.txt', 'w') as f:
     print(f"En {tiempo_total}s pasaron {contador} electrones", file=f)
     print(f"La densidad de electrones en el sistema es {densidad_e} electrones por metro cuadrado", file=f)
     print(f"El campo electrico fue de {E[0]} V/m en dirección x", file=f)
