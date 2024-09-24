@@ -75,20 +75,17 @@ class particula:
                 self.v[1]=nueva_velocidad[1]
                 self.r -= correction
                 self.v=-self.v
+                self.tau.append(t-self.tau[-1])
+
             else: 
                 nueva_velocidad=random_vel2(0,vd)
                 particula2.v[0]=nueva_velocidad[0]
                 particula2.v[1]=nueva_velocidad[1]
                 particula2.r += correction
-                particula2.v=-particula2.v  
+                particula2.v=-particula2.v 
+                particula2.tau.append(t-particula2.tau[-1])
             
-        # Tiempo entre choques
-        #Para particula2
-            tau2=t-particula2.tau[-1]
-            tau1=t-self.tau[-1]
             
-            self.tau.append(tau1)
-            particula2.tau.append(tau2)
             
             
             # Si hay un choque se va a guardar el tiempo en el que ocurre menos el tiempo anterior
@@ -151,9 +148,9 @@ for i in range(N):
 #TIEMPO REAL DE SIMULACION
 # El dt es dos ordenes de magnitud mas pequeño que el tiempo en el que una particula atravieza todo el sistema
 
-dt=(2*limx/random_vel2(2))/100 #  0.00028310447443648343
+dt=(2*limx/random_vel2(2))/200 #  0.00028310447443648343
 
-tiempo_total =dt*100000  # Tiempo total del movimiento (segundos)
+tiempo_total =dt*50000  # Tiempo total del movimiento (segundos)
 
 num_puntos = int(tiempo_total/dt)  # Número de puntos en el dataframe  10 000
 #dt=tiempo_total/num_puntos
@@ -216,7 +213,7 @@ for t in time:
 
 
 
-print(f"En {tiempo_total}s pasaron {contador} electrones")
+
 
 # SE VAN A PROMEDIAR TODOS LOS TAU DE CADA PARTICULA
 prom_tau=[]
@@ -237,7 +234,23 @@ for i in particulas:
         histogramax+=i.vx
         histogramaxfinal+=i.vx[-15:-1]
         histogramav2raiz+=(i.v2raiz)
+# Abrir el archivo manualmente
+file = open('velocidades_sergio.dat', 'w')
+# Escribir datos en el archivo
+for i in particulas:
+    if i.movimiento:    file.write(' '.join(map(str, i.vx)) )
+file.write("\n")
+for i in particulas:
+    if i.movimiento:    file.write(' '.join(map(str, i.vy)) )
+# Cerrar el archivo manualmente
+file.close() 
 
+file = open('tau.dat', 'w')
+for i in particulas:
+    if i.movimiento:    file.write(' '.join(map(str, i.tau[1:] ))+"\n" )
+file.close() 
+
+file = open('velocidades_sergio.dat', 'w')
 #PROMEDIO DE VELOCIDADES Y VELOCIDADES CUADRATICAS
 promvx,promvy=np.mean(prom_vx),np.mean(prom_vy)
 velprom=(promvx*promvx+promvy*promvy)**.5
@@ -298,19 +311,20 @@ plt.savefig("Histograma_velocidad_cuadratica")
 #Densidad de electrones
 densidad_e=(N/(2*limx*2*limy))*10**-24
 #campo electrico en voltios / metro:
-E=E*10**-12
-print(f"La densidad de electrones en el sistema es {densidad_e} electrones por metro cuadrado")
-print(f"El campo electrico fue de {E[0]} V/m en dirección x")
-print(f"El tiempo de relajación promedio tau fue {np.mean(prom_tau)} pico segundos")
-print(f"El tiempo de relajación promedio a partir de la velocidad de deriva y el campo electrico {-promvx*m_e/(E*constants.elementary_charge)} segundos")
-print(f"La conductividad superficial del material a partir del tau fue de {N/(2*limx*2*limy)*constants.elementary_charge**2*np.mean(prom_tau)/constants.electron_mass}")
-print(f"La conductividad superficial del material a partir de la velocidad de deriva fue fue de {N/(2*limx*2*limy)*constants.elementary_charge**2*np.mean(prom_tau)/constants.electron_mass}")
-print(f"La conductividad superficial del material a partir J/E 1 {densidad_e*constants.elementary_charge*promvx/E}")
-print(f"La conductividad  superficial del material a partir J/E 2 {contador/(2*limx*E)}")
-print(f"El promedio de velocidades fue {velprom} m/s")
-print(f"En promedio la velocidad de deriva fue {promvx} m/s")
-print(f"La velocidad cuadratica media fue de {promv2} m/s y deberia ser {random_vel2(2)} m/s, la discrepancia porcentual es de {np.abs(promv2-random_vel2(2,promvx))/random_vel2(2,promvx)*100}%")
-
+E=E*10**12
+with open('datos.txt', 'w') as f:
+    print(f"En {tiempo_total}s pasaron {contador} electrones", file=f)
+    print(f"La densidad de electrones en el sistema es {densidad_e} electrones por metro cuadrado", file=f)
+    print(f"El campo electrico fue de {E[0]} V/m en dirección x", file=f)
+    print(f"El tiempo de relajación promedio tau fue {np.mean(prom_tau)} pico segundos", file=f)  # Convertir a pico segundos
+    print(f"El tiempo de relajación promedio a partir de la velocidad de deriva y el campo electrico {-promvx * m_e / (E * constants.elementary_charge)*10**12} pico segundos", file=f)
+    print(f"La conductividad superficial del material a partir del tau fue de {N / (2 * limx * 2 * limy) * constants.elementary_charge ** 2 * np.mean(prom_tau) / constants.electron_mass}", file=f)
+    print(f"La conductividad superficial del material a partir de la velocidad de deriva fue de {N / (2 * limx * 2 * limy) * constants.elementary_charge ** 2 * np.mean(prom_tau) / constants.electron_mass}", file=f)
+    print(f"La conductividad superficial del material a partir J/E 1 {densidad_e * constants.elementary_charge * promvx / E[0]}", file=f)
+    print(f"La conductividad superficial del material a partir J/E 2 {contador / (2 * limx * E[0])}", file=f)
+    print(f"El promedio de velocidades fue {velprom} m/s", file=f)
+    print(f"En promedio la velocidad de deriva fue {promvx} m/s", file=f)
+    print(f"La velocidad cuadratica media fue de {promv2} m/s y deberia ser {random_vel2(2)} m/s, la discrepancia porcentual es de {np.abs(promv2 - random_vel2(2, promvx)) / random_vel2(2, promvx) * 100}%", file=f)
 # Calcular las coordenadas x e y de la partícula en función del tiempo
 #Lista de posiciones
 x,y,T,radios,colores=[],[],[],[],[]
@@ -389,4 +403,4 @@ fig.tight_layout()
 # Guardar la animación
 #ani.save('animacion_DRUDE_V5.mp4', writer='ffmpeg')
 
-plt.show()
+#plt.show()

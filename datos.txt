@@ -1,0 +1,12 @@
+En 0.5523906514718891s pasaron 1364 electrones
+La densidad de electrones en el sistema es 5.0546938048975335e-30 electrones por metro cuadrado
+El campo electrico fue de 100000000.0 V/m en dirección x
+El tiempo de relajación promedio tau fue 0.13750133274893095 pico segundos
+El tiempo de relajación promedio a partir de la velocidad de deriva y el campo electrico [0.00692382        inf] pico segundos
+La conductividad superficial del material a partir del tau fue de 1.9585449899248115e-14
+La conductividad superficial del material a partir de la velocidad de deriva fue de 1.9585449899248115e-14
+La conductividad superficial del material a partir J/E 1 -9.862165067458044e-52
+La conductividad superficial del material a partir J/E 2 5.111054904495592e-09
+El promedio de velocidades fue 121777.92092810123 m/s
+En promedio la velocidad de deriva fue -121777.49066170614 m/s
+La velocidad cuadratica media fue de 435401.8598428275 m/s y deberia ser 48312.27669927013 m/s, la discrepancia porcentual es de 801.2240564713549%
