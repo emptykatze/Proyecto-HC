@@ -150,7 +150,7 @@ for i in range(N):
 
 dt=(2*limx/random_vel2(2))/200 #  0.00028310447443648343
 
-tiempo_total =dt*70000  # Tiempo total del movimiento (segundos)
+tiempo_total =dt*200  # Tiempo total del movimiento (pico segundos)
 
 num_puntos = int(tiempo_total/dt)  # Número de puntos en el dataframe  10 000
 #dt=tiempo_total/num_puntos
@@ -164,22 +164,6 @@ for t in time:
     if (t*100/tiempo_total)%1 < .3 and int(t*100/tiempo_total)!=int((t-dt)*100/tiempo_total): print(f"{int(t*100/tiempo_total)} %")
     
     for i in particulas:
-        # Colisiones con los límites horizontales
-        #if i.r[0] - i.radio <= -limx:
-        #    i.r[0] = -limx + i.radio  # Reposicionar justo en el borde
-        #    i.v[0] = -i.v[0]  # Invertir velocidad
-        #elif i.r[0] + i.radio >= limx:
-        #    i.r[0] = limx - i.radio  # Reposicionar justo en el borde
-        #    i.v[0] = -i.v[0]  # Invertir velocidad
-
-        # Colisiones con los límites verticales
-        #if i.r[1] - i.radio <= -limy:
-        #    i.r[1] = -limy + i.radio  # Reposicionar justo en el borde
-        #    i.v[1] = -i.v[1]  # Invertir velocidad
-        #elif i.r[1] + i.radio >= limy:
-        #    i.r[1] = limy - i.radio  # Reposicionar justo en el borde
-        #    i.v[1] = -i.v[1]  # Invertir velocidad
-        
         if i.movimiento:
             # Frontera periódica en x
             if i.r[0] - i.radio < -limx:
@@ -209,133 +193,120 @@ for t in time:
         i.campo_electrico(E,dt)
         i.mov(dt)
         
-
-
-
-
-
-
-# SE VAN A PROMEDIAR TODOS LOS TAU DE CADA PARTICULA
-prom_tau=[]
-prom_vx,prom_vy=[],[]
-prom_v2=[]
-
-histogramay=[]
-histogramax=[]
-histogramaxfinal=[]
-histogramav2raiz=[]
-with open('vx2.dat', 'w') as file:
+with open('vx.dat', 'w') as file:
     for i in particulas:
         # Escribir cada fila en el archivo separando los valores por un espacio
-        file.write(' '.join(map(str, i.vx)) + '\n')
-with open('vy2.dat', 'w') as file:
+        if i.movimiento:    file.write(' '.join(map(str, i.vx)) + '\n')
+with open('vy.dat', 'w') as file:
     for i in particulas:
         # Escribir cada fila en el archivo separando los valores por un espacio
-        file.write(' '.join(map(str, i.vy)) + '\n')
+        if i.movimiento:    file.write(' '.join(map(str, i.vy)) + '\n')
 
-for i in particulas:
-    if i.movimiento==True and len(i.tau)>1:
-        prom_tau.append(np.mean(i.tau[1:]))
-        prom_vx.append(np.mean((i.vx)))
-        prom_vy.append(np.mean((i.vy)))
-        prom_v2.append(np.mean(i.v2))
-        histogramay+=i.vy
-        histogramax+=i.vx
-        histogramaxfinal+=i.vx[-15:-1]
-        histogramav2raiz+=(i.v2raiz)
-# Abrir el archivo manualmente
-file = open('velocidades_sergio2.dat', 'w')
-# Escribir datos en el archivo
+# Abrir el archivo de velocidades 
+file = open('velocidades.dat', 'w')
+# Escribir datos en el archivo de velocidades
 for i in particulas:
     if i.movimiento:    file.write(' '.join(map(str, i.vx)) )
 file.write("\n")
 for i in particulas:
     if i.movimiento:    file.write(' '.join(map(str, i.vy)) )
-# Cerrar el archivo manualmente
+# Cerrar el archivo 
 file.close() 
 
-file = open('tau2.dat', 'w')
+#Escribir datos en el archivo para los tiempos de colisión 
+file = open('tau.dat', 'w')
 for i in particulas:
     if i.movimiento:    file.write(' '.join(map(str, i.tau[1:] ))+"\n" )
-file.close() 
+file.close()
 
-file = open('velocidades_sergio2.dat', 'w')
+#file = open('velocidades_sergio2.dat', 'w')
 #PROMEDIO DE VELOCIDADES Y VELOCIDADES CUADRATICAS
-promvx,promvy=np.mean(prom_vx),np.mean(prom_vy)
-velprom=(promvx*promvx+promvy*promvy)**.5
-promv2=np.sqrt(np.mean(prom_v2))
+#promvx,promvy=np.mean(prom_vx),np.mean(prom_vy)
+#velprom=(promvx*promvx+promvy*promvy)**.5
+#promv2=np.sqrt(np.mean(prom_v2))
 
-#HISTOGRAMA PARA Y
-f=open("Velocidades2.dat","w")
-plt.figure(figsize=(10, 5))
-plt.title('Histograma velocidades en Y')
-VY= np.linspace( - 4*velocidad_cuadratica_promedio,   4*velocidad_cuadratica_promedio, 1000)
-DATAVY= norm.pdf(VY, 0, velocidad_cuadratica_promedio)
-f.write(str(DATAVY)+"\n")
-plt.plot(VY, DATAVY, color='darkslateblue', linewidth=3)
-plt.hist(histogramay, bins=50, density=True,color="mediumslateblue")
-plt.savefig("Histograma_Vel_Y")
+
 # HISTOGRAMA PARA X EN TODOS LOS TIEMPOS
-plt.figure(figsize=(10, 5))
-plt.title('Histograma velocidades en X para todos los tiempos')
+#plt.figure(figsize=(10, 5))
+#plt.title('Histograma velocidades en X para todos los tiempos')
     #Agrega una linea vertical en la velocidad de deriva
-plt.axvline(x=promvx, color='yellowgreen', linestyle='--', linewidth=3, label='Velocidad de deriva')
-VX= np.linspace( promvx- 4*velocidad_cuadratica_promedio, promvx+4*velocidad_cuadratica_promedio, 1000)
-DATAVX= norm.pdf(VX, promvx, velocidad_cuadratica_promedio)
-plt.plot(VX, DATAVX, 'yellowgreen', linewidth=2)
-plt.hist(histogramax, bins=50, density=True,color="forestgreen")
-plt.legend()
-plt.savefig("Histograma_Vel_X_TODO_T")
+#plt.axvline(x=promvx, color='yellowgreen', linestyle='--', linewidth=3, label='Velocidad de deriva')
+#VX= np.linspace( promvx- 4*velocidad_cuadratica_promedio, promvx+4*velocidad_cuadratica_promedio, 1000)
+#DATAVX= norm.pdf(VX, promvx, velocidad_cuadratica_promedio)
+#plt.plot(VX, DATAVX, 'yellowgreen', linewidth=2)
+#plt.hist(histogramax, bins=50, density=True,color="forestgreen")
+#plt.legend()
+#plt.savefig("Histograma_Vel_X_TODO_T")
 
 
 # HISTOGRAMA PARA X al final
-plt.figure(figsize=(10, 5))
-plt.title('Histograma velocidades en X para el final')
+#plt.figure(figsize=(10, 5))
+#plt.title('Histograma velocidades en X para el final')
     #Agrega una linea vertical en la velocidad de deriva
-plt.axvline(x=promvx, color='darkblue', linestyle='--', linewidth=3, label='Velocidad de deriva')
-VX= np.linspace( promvx- 4*velocidad_cuadratica_promedio, promvx+4*velocidad_cuadratica_promedio, 1000)
-DATAVX= norm.pdf(VX, promvx, velocidad_cuadratica_promedio)
-f.write(str(DATAVX)+"\n")
-plt.plot(VX, DATAVX, 'darkblue', linewidth=2)
-plt.hist(histogramaxfinal, bins=50, density=True,color="royalblue")
-plt.legend()
-plt.savefig("Histograma_Vel_X_TODO_T")
-f.close()
+#plt.axvline(x=promvx, color='darkblue', linestyle='--', linewidth=3, label='Velocidad de deriva')
+#VX= np.linspace( promvx- 4*velocidad_cuadratica_promedio, promvx+4*velocidad_cuadratica_promedio, 1000)
+#DATAVX= norm.pdf(VX, promvx, velocidad_cuadratica_promedio)
+#f.write(str(DATAVX)+"\n")
+#plt.plot(VX, DATAVX, 'darkblue', linewidth=2)
+#plt.hist(histogramaxfinal, bins=50, density=True,color="royalblue")
+#plt.legend()
+#plt.savefig("Histograma_Vel_X_TODO_T")
+#f.close()
 
 
 # HISTOGRAMA PARA LA VELOCIDAD CUADRATICA
-plt.figure(figsize=(10, 5))
-plt.title('Histograma Velocidad cuadratica')
+#plt.figure(figsize=(10, 5))
+#plt.title('Histograma Velocidad cuadratica')
     #Agrega una linea vertical en la velocidad de deriva
-plt.axvline(x=promvx, color='darkblue', linestyle='--', linewidth=3, label='Velocidad de deriva')
-VX= np.linspace( 0, promvx+4*velocidad_cuadratica_promedio, 1000)
-DATAVX= ((norm.pdf(VX, promvx, velocidad_cuadratica_promedio)**2)+(norm.pdf(VX, 0, velocidad_cuadratica_promedio)**2))**.5
-plt.plot(VX, DATAVX, 'darkblue', linewidth=2)
-plt.hist(histogramav2raiz, bins=50, density=True,color="royalblue")
-plt.legend()
-plt.savefig("Histograma_velocidad_cuadratica")
-
-
+#plt.axvline(x=promvx, color='darkblue', linestyle='--', linewidth=3, label='Velocidad de deriva')
+#VX= np.linspace( 0, promvx+4*velocidad_cuadratica_promedio, 1000)
+#DATAVX= ((norm.pdf(VX, promvx, velocidad_cuadratica_promedio)**2)+(norm.pdf(VX, 0, velocidad_cuadratica_promedio)**2))**.5
+#plt.plot(VX, DATAVX, 'darkblue', linewidth=2)
+#plt.hist(histogramav2raiz, bins=50, density=True,color="royalblue")
+#plt.legend()
+#plt.savefig("Histograma_velocidad_cuadratica")
 
 #Densidad de electrones
 densidad_e=(N/(2*limx*2*limy))*10**-24
 #campo electrico en voltios / metro:
-E=E*10**12
-with open('datos2.txt', 'w') as f:
-    print(f"En {tiempo_total}s pasaron {contador} electrones", file=f)
-    print(f"La densidad de electrones en el sistema es {densidad_e} electrones por metro cuadrado", file=f)
-    print(f"El campo electrico fue de {E[0]} V/m en dirección x", file=f)
-    print(f"El tiempo de relajación promedio tau fue {np.mean(prom_tau)} pico segundos", file=f)  # Convertir a pico segundos
-    print(f"El tiempo de relajación promedio a partir de la velocidad de deriva y el campo electrico {-promvx * m_e / (E * constants.elementary_charge)*10**12} pico segundos", file=f)
-    print(f"La conductividad superficial del material a partir del tau fue de {N / (2 * limx * 2 * limy) * constants.elementary_charge ** 2 * np.mean(prom_tau) / constants.electron_mass}", file=f)
-    print(f"La conductividad superficial del material a partir de la velocidad de deriva fue de {N / (2 * limx * 2 * limy) * constants.elementary_charge ** 2 * np.mean(prom_tau) / constants.electron_mass}", file=f)
-    print(f"La conductividad superficial del material a partir J/E 1 {densidad_e * constants.elementary_charge * promvx / E[0]}", file=f)
-    print(f"La conductividad superficial del material a partir J/E 2 {contador / (2 * limx * E[0])}", file=f)
-    print(f"El promedio de velocidades fue {velprom} m/s", file=f)
-    print(f"En promedio la velocidad de deriva fue {promvx} m/s", file=f)
-    print(f"La velocidad cuadratica media fue de {promv2} m/s y deberia ser {random_vel2(2)} m/s, la discrepancia porcentual es de {np.abs(promv2 - random_vel2(2, promvx)) / random_vel2(2, promvx) * 100}%", file=f)
-# Calcular las coordenadas x e y de la partícula en función del tiempo
-#Lista de posiciones
+
+# PONER DATOS DE LA SIMULACION EN UN RESULTADOS.DAT
+# Encabezados en una lista
+encabezados = [
+    f"Tiempo_total[ps]{tiempo_total/dt}dt",
+    "dt[ps]",
+    "Contador[electrones]",
+    "Tamano_x[pm]",
+    "Tamano_y[pm]",
+    "E_x[V/pm]",
+    "E_y[V/pm]",
+    "Num_iones",
+    "Num_electrones"
+]
+
+# Empaquetar los datos en un array (asegurarse de que 'E' sea un array o lista si tiene más de una componente)
+datos = np.array([
+    tiempo_total,
+    dt,
+    contador,            # Electrones que pasaron en la dirección del campo
+    2 * limx,            # tamaño total en x
+    2 * limy,            # tamaño total en y
+    E[0],                # componente x del campo eléctrico
+    E[1],                # componente y del campo eléctrico
+    M2,                  # número de iones
+    N                    # número de electrones
+])
+
+# Crear una lista con filas donde cada fila tiene el encabezado y su valor correspondiente
+# Usamos zip para emparejar encabezados y datos
+data_with_headers = np.column_stack((encabezados, datos))
+# Guardar el archivo .dat con un formato apropiado
+np.savetxt('resultados.dat', data_with_headers, fmt='%s', delimiter="   ")
+
+
+#########################################
+### LISTAS PARA INICIAR LA ANIMACIÓN  ###
+#########################################
 x,y,T,radios,colores=[],[],[],[],[]
 
 for i in particulas:
