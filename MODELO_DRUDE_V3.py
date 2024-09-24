@@ -150,11 +150,7 @@ for i in range(N):
 
 dt=(2*limx/random_vel2(2))/200 #  0.00028310447443648343
 
-<<<<<<< Updated upstream
 tiempo_total =dt*50000  # Tiempo total del movimiento (segundos)
-=======
-tiempo_total =dt*1000  # Tiempo total del movimiento (segundos)
->>>>>>> Stashed changes
 
 num_puntos = int(tiempo_total/dt)  # Número de puntos en el dataframe  10 000
 #dt=tiempo_total/num_puntos
@@ -324,7 +320,6 @@ plt.savefig("Histograma_velocidad_cuadratica")
 #Densidad de electrones
 densidad_e=(N/(2*limx*2*limy))*10**-24
 #campo electrico en voltios / metro:
-<<<<<<< Updated upstream
 E=E*10**12
 with open('datos.txt', 'w') as f:
     print(f"En {tiempo_total}s pasaron {contador} electrones", file=f)
@@ -332,14 +327,6 @@ with open('datos.txt', 'w') as f:
     print(f"El campo electrico fue de {E[0]} V/m en dirección x", file=f)
     print(f"El tiempo de relajación promedio tau fue {np.mean(prom_tau)} pico segundos", file=f)  # Convertir a pico segundos
     print(f"El tiempo de relajación promedio a partir de la velocidad de deriva y el campo electrico {-promvx * m_e / (E * constants.elementary_charge)*10**12} pico segundos", file=f)
-=======
-E=E*10**-12
-with open('datos.txt', 'w') as f:
-    print(f"La densidad de electrones en el sistema es {densidad_e} electrones por metro cuadrado", file=f)
-    print(f"El campo electrico fue de {E[0]} V/m en dirección x", file=f)
-    print(f"El tiempo de relajación promedio tau fue {np.mean(prom_tau) * 1e12} pico segundos", file=f)  # Convertir a pico segundos
-    print(f"El tiempo de relajación promedio a partir de la velocidad de deriva y el campo electrico {-promvx * m_e / (E * constants.elementary_charge)} segundos", file=f)
->>>>>>> Stashed changes
     print(f"La conductividad superficial del material a partir del tau fue de {N / (2 * limx * 2 * limy) * constants.elementary_charge ** 2 * np.mean(prom_tau) / constants.electron_mass}", file=f)
     print(f"La conductividad superficial del material a partir de la velocidad de deriva fue de {N / (2 * limx * 2 * limy) * constants.elementary_charge ** 2 * np.mean(prom_tau) / constants.electron_mass}", file=f)
     print(f"La conductividad superficial del material a partir J/E 1 {densidad_e * constants.elementary_charge * promvx / E[0]}", file=f)
