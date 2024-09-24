@@ -244,10 +244,12 @@ velprom=(promvx*promvx+promvy*promvy)**.5
 promv2=np.sqrt(np.mean(prom_v2))
 
 #HISTOGRAMA PARA Y
+f=open("Velocidades.dat","w")
 plt.figure(figsize=(10, 5))
 plt.title('Histograma velocidades en Y')
 VY= np.linspace( - 4*velocidad_cuadratica_promedio,   4*velocidad_cuadratica_promedio, 1000)
 DATAVY= norm.pdf(VY, 0, velocidad_cuadratica_promedio)
+f.write(str(DATAVY)+"\n")
 plt.plot(VY, DATAVY, color='darkslateblue', linewidth=3)
 plt.hist(histogramay, bins=50, density=True,color="mediumslateblue")
 plt.savefig("Histograma_Vel_Y")
@@ -271,10 +273,12 @@ plt.title('Histograma velocidades en X para el final')
 plt.axvline(x=promvx, color='darkblue', linestyle='--', linewidth=3, label='Velocidad de deriva')
 VX= np.linspace( promvx- 4*velocidad_cuadratica_promedio, promvx+4*velocidad_cuadratica_promedio, 1000)
 DATAVX= norm.pdf(VX, promvx, velocidad_cuadratica_promedio)
+f.write(str(DATAVX)+"\n")
 plt.plot(VX, DATAVX, 'darkblue', linewidth=2)
 plt.hist(histogramaxfinal, bins=50, density=True,color="royalblue")
 plt.legend()
 plt.savefig("Histograma_Vel_X_TODO_T")
+f.close()
 
 
 # HISTOGRAMA PARA LA VELOCIDAD CUADRATICA
