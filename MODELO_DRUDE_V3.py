@@ -151,9 +151,9 @@ for i in range(N):
 #TIEMPO REAL DE SIMULACION
 # El dt es dos ordenes de magnitud mas pequeño que el tiempo en el que una particula atravieza todo el sistema
 
-dt=(2*limx/random_vel2(2))/1000 #  0.00028310447443648343
+dt=(2*limx/random_vel2(2))/100 #  0.00028310447443648343
 
-tiempo_total =dt*1000  # Tiempo total del movimiento (segundos)
+tiempo_total =dt*100000  # Tiempo total del movimiento (segundos)
 
 num_puntos = int(tiempo_total/dt)  # Número de puntos en el dataframe  10 000
 #dt=tiempo_total/num_puntos
@@ -383,6 +383,6 @@ ani = animation.FuncAnimation(
 
 fig.tight_layout()
 # Guardar la animación
-ani.save('animacion_DRUDE_V5.mp4', writer='ffmpeg')
+#ani.save('animacion_DRUDE_V5.mp4', writer='ffmpeg')
 
 plt.show()
